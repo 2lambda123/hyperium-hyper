@@ -856,7 +856,7 @@ impl Server {
         }
 
         // cached date is much faster than formatting every request
-        if !wrote_date {
+        if !wrote_date && msg.add_date {
             dst.reserve(date::DATE_VALUE_LENGTH + 8);
             header_name_writer.write_header_name_with_colon(dst, "date: ", header::DATE);
             date::extend(dst);
@@ -2290,6 +2290,7 @@ mod tests {
                 keep_alive: true,
                 req_method: &mut None,
                 title_case_headers: true,
+                add_date: true,
             },
             &mut vec,
         )
@@ -2321,6 +2322,7 @@ mod tests {
                 keep_alive: true,
                 req_method: &mut None,
                 title_case_headers: false,
+                add_date: true,
             },
             &mut vec,
         )
@@ -2355,6 +2357,7 @@ mod tests {
                 keep_alive: true,
                 req_method: &mut None,
                 title_case_headers: true,
+                add_date: true,
             },
             &mut vec,
         )
@@ -2379,6 +2382,7 @@ mod tests {
                 keep_alive: true,
                 req_method: &mut Some(Method::CONNECT),
                 title_case_headers: false,
+                add_date: true,
             },
             &mut vec,
         )
@@ -2408,6 +2412,7 @@ mod tests {
                 keep_alive: true,
                 req_method: &mut None,
                 title_case_headers: true,
+                add_date: true,
             },
             &mut vec,
         )
@@ -2442,6 +2447,7 @@ mod tests {
                 keep_alive: true,
                 req_method: &mut None,
                 title_case_headers: false,
+                add_date: true,
             },
             &mut vec,
         )
@@ -2476,6 +2482,7 @@ mod tests {
                 keep_alive: true,
                 req_method: &mut None,
                 title_case_headers: true,
+                add_date: true,
             },
             &mut vec,
         )
@@ -2485,6 +2492,37 @@ mod tests {
             b"HTTP/1.1 200 OK\r\nCONTENT-LENGTH: 10\r\nContent-Type: application/json\r\nDate: ";
 
         assert_eq!(&vec[..expected_response.len()], &expected_response[..]);
+    }
+
+    #[test]
+    fn test_server_disable_add_date() {
+        use crate::proto::BodyLength;
+        use http::header::HeaderValue;
+
+        let mut head = MessageHead::default();
+        head.headers
+            .insert("content-length", HeaderValue::from_static("10"));
+        head.headers
+            .insert("content-type", HeaderValue::from_static("application/json"));
+
+        let mut vec = Vec::new();
+        Server::encode(
+            Encode {
+                head: &mut head,
+                body: Some(BodyLength::Known(10)),
+                keep_alive: true,
+                req_method: &mut None,
+                title_case_headers: false,
+                add_date: false,
+            },
+            &mut vec,
+        )
+        .unwrap();
+
+        let expected_response =
+            b"HTTP/1.1 200 OK\r\ncontent-length: 10\r\ncontent-type: application/json\r\n\r\n";
+
+        assert_eq!(vec, expected_response);
     }
 
     #[test]
@@ -2677,6 +2715,7 @@ mod tests {
                     keep_alive: true,
                     req_method: &mut Some(Method::GET),
                     title_case_headers: false,
+                    add_date: true,
                 },
                 &mut vec,
             )
@@ -2705,6 +2744,7 @@ mod tests {
                     keep_alive: true,
                     req_method: &mut Some(Method::GET),
                     title_case_headers: false,
+                    add_date: true
                 },
                 &mut vec,
             )
