@@ -69,12 +69,7 @@ tokio-util = "0.7.10"
 default = []
 
 # Easily turn it all on
-full = [
-    "client",
-    "http1",
-    "http2",
-    "server",
-]
+full = ["client", "http1", "http2", "server"]
 
 # HTTP versions
 http1 = ["dep:futures-channel", "dep:futures-util", "dep:httparse", "dep:itoa"]
@@ -85,7 +80,7 @@ client = ["dep:want", "dep:pin-project-lite", "dep:smallvec"]
 server = ["dep:httpdate", "dep:pin-project-lite", "dep:smallvec"]
 
 # C-API support (currently unstable (no semver))
-ffi = ["dep:libc", "dep:http-body-util"]
+ffi = ["dep:libc", "full", "dep:http-body-util"]
 
 # Utilize tracing (currently unstable)
 tracing = ["dep:tracing"]
